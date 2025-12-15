@@ -4,12 +4,13 @@
 		<TargetFramework>net8.0</TargetFramework>
 
 		<!-- Metadatos para NuGet -->
-		<PackageId>ConsoleApp1.MiBiblioteca</PackageId>
+		<PackageId>Consumer.MiBiblioteca</PackageId>
 		<Version>1.0.0</Version>
 		<Authors>Ariel</Authors>
+		<Company>MiEmpresa</Company>
 		<Description>zekaprincesahermosa</Description>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
-		<RepositoryUrl>https://git.ConsoleApp1.com/repositorio</RepositoryUrl>
+		<RepositoryUrl>https://git.Consumer.com/repositorio</RepositoryUrl>
 	</PropertyGroup>
 
 </Project>

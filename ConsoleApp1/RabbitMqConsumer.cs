@@ -1,4 +1,4 @@
-﻿using ConsoleApp1;
+﻿using Consumer;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -72,3 +72,4 @@ public class RabbitMqConsumer
         try { await ch.BasicCancelAsync(tag); } catch { }
     }
 }
+//zeka princesa hermosa
