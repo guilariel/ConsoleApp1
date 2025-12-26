@@ -1,86 +1,90 @@
-﻿using ActualizeDataBaseWithRabbitMQ.Domain.Entities;
-using ActualizeDataBaseWithRabbitMQ.Infrastructure.LogInCrud;
-using ActualizeDataBaseWithRabbitMQ.Infrastructure.PurchaseStocks;
-using ActualizeDataBaseWithRabbitMQ.Infrastructure.SellStocksCruds;
-using ActualizeDataBaseWithRabbitMQ.Infrastructure.StocksAppCruds;
-using System.Threading.Tasks;
+﻿using RabbitMQAndGenericRepository.Repositorio.DbEntities;
 
 namespace ActualizeDataBaseWithRabbitMQ.Infrastructure
 {
     public class AddToDbJob
     {
-        private readonly SellStocksCrudPrices _crudPrices;
-        private readonly SellStocksCrudStocks _crudStocks;
-        private readonly SellStocksCrudUsers _crudUsers;
-        private readonly SellStocksCrudPossession _crudPossession;
+        private readonly StocksAppUnitOfWork _stocksApp;
+        private readonly PurchaseStocksUnitOfWork _purchase;
+        private readonly SellStocksUnitOfWork _sell;
+        private readonly LogInUnitOfWork _login;
 
-        private readonly PurchaseStocksCrudPrices _purchaseCrudPrices;
-        private readonly PurchaseStocksCrudStocks _purchaseCrudStocks;
-        private readonly PurchaseStocksCrudUsers _purchaseCrudUsers;
-        private readonly PurchaseStocksCrudPossession _purchaseCrudPossession;
-
-        private readonly StocksAppCrudPrices _stocksAppCrudPrices;
-        private readonly StocksAppCrudStocks _stocksAppCrudStocks;
-        private readonly StocksAppCrudUsers _stocksAppCrudUsers;
-        private readonly StocksAppCrudPossession _stocksAppCrudPossession;
-
-        private readonly LogInCrudUsers _logInCrudUsers;
         public AddToDbJob(
-            SellStocksCrudPrices crudPrices, SellStocksCrudStocks crudStocks,
-            SellStocksCrudUsers crudUsers, SellStocksCrudPossession crudPossession,
-            PurchaseStocksCrudPrices purchaseCrudPrices, PurchaseStocksCrudStocks purchaseCrudStocks,
-            PurchaseStocksCrudUsers purchaseCrudUsers, PurchaseStocksCrudPossession purchaseCrudPossession,
-            StocksAppCrudPrices stocksAppCrudPrices, StocksAppCrudStocks stocksAppCrudStocks,
-            StocksAppCrudUsers stocksAppCrudUsers, StocksAppCrudPossession stocksAppCrudPossession,
-            LogInCrudUsers logInCrudUsers
-            )
+            StocksAppUnitOfWork stocksApp,
+            PurchaseStocksUnitOfWork purchase,
+            SellStocksUnitOfWork sell,
+            LogInUnitOfWork login)
         {
-            _crudPrices = crudPrices;
-            _crudStocks = crudStocks;
-            _crudUsers = crudUsers;
-            _crudPossession = crudPossession;
-            _purchaseCrudPrices = purchaseCrudPrices;
-            _purchaseCrudStocks = purchaseCrudStocks;
-            _purchaseCrudUsers = purchaseCrudUsers;
-            _purchaseCrudPossession = purchaseCrudPossession;
-            _stocksAppCrudPrices = stocksAppCrudPrices;
-            _stocksAppCrudStocks = stocksAppCrudStocks;
-            _stocksAppCrudUsers = stocksAppCrudUsers;
-            _stocksAppCrudPossession = stocksAppCrudPossession;
-            _logInCrudUsers = logInCrudUsers;
+            _stocksApp = stocksApp;
+            _purchase = purchase;
+            _sell = sell;
+            _login = login;
         }
 
         public async Task Execute(StockDb stock)
         {
-            Console.WriteLine($"Adding stock: {stock.name} ({stock.symbol})");
-            await _crudStocks.AddAsync(stock);
-            await _purchaseCrudStocks.AddAsync(stock);
-            await _stocksAppCrudStocks.AddAsync(stock);
+            await _stocksApp.StockRepository.AddAsync(stock);
+            await _purchase.StockRepository.AddAsync(stock);
+            await _sell.StockRepository.AddAsync(stock);
         }
-
-        public async Task Execute(PriceDb price)
+        public async Task Execute(PriceHistoryDb price)
         {
-            Console.WriteLine($"Adding price: {price.price} at {price.date}");
-            await _crudPrices.AddPrice(price);
-            await _purchaseCrudPrices.AddPrice(price);
-            await _stocksAppCrudPrices.AddPrice(price);
+            await _stocksApp.PriceRepository.AddAsync(price);
+            await _purchase.PriceRepository.AddAsync(price);
+            await _sell.PriceRepository.AddAsync(price);
         }
-
         public async Task Execute(UsersDb user)
         {
-            Console.WriteLine($"Adding user: {user.name} with funds {user.funds}");
-            await _crudUsers.AddAsync(user);
-            await _purchaseCrudUsers.AddAsync(user);
-            await _stocksAppCrudUsers.AddAsync(user);
-            await _logInCrudUsers.AddAsync(user);
+            await _stocksApp.UserRepository.AddAsync(user);
+            await _purchase.UserRepository.AddAsync(user);
+            await _sell.UserRepository.AddAsync(user);
+            await _login.UserRepository.AddAsync(user);
         }
-
+        public async Task Execute(UserFundsDb userFunds)
+        {
+            await _stocksApp.UserFundsRepository.AddAsync(userFunds);
+            await _login.UserFundsRepository.AddAsync(userFunds);
+        }
         public async Task Execute(InPossessionDb possession)
         {
-            Console.WriteLine($"Adding possession: Owner {possession.owner_id} - Stock {possession.stock_id} Amount {possession.amount}");
-            await _crudPossession.AddPossession(possession);
-            await _purchaseCrudPossession.AddPossession(possession);
-            await _stocksAppCrudPossession.AddPossession(possession);
+            await _stocksApp.InPossessionRepository.AddAsync(possession);
+        }
+        public async Task Execute(TransactionHistoryDb transaction)
+        {
+            await _stocksApp.TransactionRepository.AddAsync(transaction);
         }
     }
 }
+
+/* public async Task Execute(StockDb stock)
+        {
+            await _stockRepository_StocksApp.AddAsync(stock);
+            await _stockRepository_Purchase.AddAsync(stock);
+            await _stockRepository_Sell.AddAsync(stock);
+        }
+        public async Task Execute(PriceDb price)
+        {
+            await _priceRepository_StocksApp.AddPrice(price);
+            await _priceRepository_Purchase.AddPrice(price);
+            await _priceRepository_Sell.AddPrice(price);
+        }
+        public async Task Execute(UsersDb user)
+        {
+            await _userRepository_StocksApp.AddAsync(user);
+            await _userRepository_Purchase.AddAsync(user);
+            await _userRepository_Sell.AddAsync(user);
+            await _userRepository_LogIn.AddAsync(user);
+        }
+        public async Task Execute(UserFundsDb userFunds)
+        {
+            await userFundsRepository_StocksApp.AddAsync(userFunds);
+            await _userFundsRepository_LogIn.AddAsync(userFunds);
+        }
+        public async Task Execute(InPossessionDb possession)
+        {
+            await _inPossessionRepository_StocksApp.AddPossession(possession);
+        }
+        public async Task Execute(TransactionHistoryDb transaction)
+        {
+            await _transactionRepositoryRepository_StocksApp.AddAsync(transaction);
+        }*/

@@ -1,9 +1,4 @@
-﻿using ActualizeDataBaseWithRabbitMQ.Domain.Entities;
-using ActualizeDataBaseWithRabbitMQ.Infrastructure;
-using ActualizeDataBaseWithRabbitMQ.Infrastructure.LogInCrud;
-using ActualizeDataBaseWithRabbitMQ.Infrastructure.PurchaseStocks;
-using ActualizeDataBaseWithRabbitMQ.Infrastructure.SellStocksCruds;
-using ActualizeDataBaseWithRabbitMQ.Infrastructure.StocksAppCruds;
+﻿using ActualizeDataBaseWithRabbitMQ.Infrastructure;
 using Hangfire;
 using Hangfire.PostgreSql;
 using Microsoft.AspNetCore.Builder;
@@ -11,8 +6,9 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using RabbitMQAndGenericRepository.RabbitMq;
+using RabbitMQAndGenericRepository.Repositorio;
+using ActualizeDataBaseWithRabbitMQ.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.ConfigureKestrel(options =>
@@ -22,19 +18,10 @@ builder.WebHost.ConfigureKestrel(options =>
 var services = builder.Services;
 var configuration = builder.Configuration;
 
-// --------------------------------------------
-//  PostgreSQL: registrar los 3 contextos
-// --------------------------------------------
-services.AddDbContext<SellStocksDbContext>(options =>
-    options.UseNpgsql(configuration.GetConnectionString("SellStocksDb")));
-
-services.AddDbContext<PurchaseStocksDbContext>(options =>
-    options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
-
-services.AddDbContext<StocksAppDbContext>(options =>
-    options.UseNpgsql(configuration.GetConnectionString("StocksApp")));
-services.AddDbContext<LogInDbContext>(options =>
-    options.UseNpgsql(configuration.GetConnectionString("LogInDb")));
+builder.Services.AddDbContextFactory<GenericDbContext>(options =>
+{
+    options.UseNpgsql(); // provider base
+});
 
 // --------------------------------------------
 // 🔹 RabbitMQ
@@ -47,22 +34,11 @@ services.AddSingleton<RabbitMessageService>();
 // --------------------------------------------
 //  Repositorios y Jobs
 // --------------------------------------------
-services.AddScoped<StocksAppCrudStocks>();
-services.AddScoped<StocksAppCrudUsers>();
-services.AddScoped<StocksAppCrudPossession>();
-services.AddScoped<StocksAppCrudPrices>();
 
-services.AddScoped<SellStocksCrudStocks>();
-services.AddScoped<SellStocksCrudPrices>();
-services.AddScoped<SellStocksCrudUsers>();
-services.AddScoped<SellStocksCrudPossession>();
-
-services.AddScoped<PurchaseStocksCrudStocks>();
-services.AddScoped<PurchaseStocksCrudUsers>();
-services.AddScoped<PurchaseStocksCrudPossession>();
-services.AddScoped<PurchaseStocksCrudPrices>();
-
-services.AddScoped<LogInCrudUsers>();
+services.AddTransient<StocksAppUnitOfWork>();
+services.AddTransient<SellStocksUnitOfWork>();
+services.AddTransient<PurchaseStocksUnitOfWork>(); 
+services.AddTransient<LogInUnitOfWork>();
 
 services.AddScoped<AddToDbJob>();
 services.AddScoped<DeleteFromDbJob>();
@@ -114,3 +90,20 @@ app.Run();
 //["add", "$", "USD", "dollar", "1"]
 //["add", "ilias", "0", "123"]
 //["add", "2", "2", "1"]
+
+
+/* .Services.AddDbContext<StocksAppDbContext>(options =>
+    options.UseNpgsql(configuration.GetConnectionString("StockApp"))
+);
+
+builder.Services.AddDbContext<SellStocksDbContext>(options =>
+    options.UseNpgsql(configuration.GetConnectionString("SellStocksDb"))
+);
+
+builder.Services.AddDbContext<PurchaseStocksDbContext>(options =>
+    options.UseNpgsql(configuration.GetConnectionString("DefaultConnection"))
+);
+
+builder.Services.AddDbContext<LogInDbContext>(options =>
+    options.UseNpgsql(configuration.GetConnectionString("LogInDb"))
+);*/

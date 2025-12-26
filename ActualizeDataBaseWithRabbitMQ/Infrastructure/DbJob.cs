@@ -1,9 +1,6 @@
-﻿using ActualizeDataBaseWithRabbitMQ.Domain.Entities;
+﻿using RabbitMQAndGenericRepository.Repositorio.DbEntities;
 using RabbitMQAndGenericRepository.RabbitMq;
-using System;
 using System.Text.Json;
-using System.Threading.Tasks;
-
 namespace ActualizeDataBaseWithRabbitMQ.Infrastructure
 {
     internal class DbJob
@@ -37,54 +34,71 @@ namespace ActualizeDataBaseWithRabbitMQ.Infrastructure
                 switch (length)
                 {
                     case 2:
-                        // Puede ser UsersDb, PriceDb o InPossessionDb
-                        if (DateTime.TryParse(data[1].ToString(), out DateTime date))
+                        UsersDb usersDb = new UsersDb
                         {
-                            var price = new PriceDb
-                            {
-                                price = int.Parse(data[0].ToString()),
-                                date = DateTime.SpecifyKind(date, DateTimeKind.Utc)
-                            };
-                            await Run(action, price);
-                        }
+                            name = data[0].GetString(),
+                            password_hash = data[1].GetString()
+                        };
+                        await Run(action, usersDb);
                         break;
                     case 3:
-                        if (!int.TryParse(data[0].ToString(), out _))
+                        if (int.TryParse(data[0].GetString(), out _) || int.TryParse(data[1].GetString(), out _))
                         {
-                            var user = new UsersDb
+                            InPossessionDb inPossessionDb = new InPossessionDb
                             {
-                                name = data[0].ToString(),
-                                funds = int.Parse(data[1].ToString()),
-                                password_hash = data[2].ToString()
+                                owner_id = int.Parse(data[0].GetString()),
+                                stock_id = int.Parse(data[1].GetString()),
+                                amount = int.Parse(data[2].GetString())
                             };
-                            await Run(action, user);
+                            await Run(action, inPossessionDb);
+                        }
+                        else if (DateTime.TryParse(data[2].GetString(), out _))
+                        {
+                            PriceHistoryDb priceHistoryDb = new PriceHistoryDb
+                            {
+                                price = double.Parse(data[0].GetString()),
+                                currency = data[1].GetString(),
+                                date = DateTime.Parse(data[2].GetString()),
+                            };
+                            await Run(action, priceHistoryDb);
+                        }
+                        else if( double.TryParse(data[0].GetString(), out _))
+                        {
+                            UserFundsDb userFundsDb = new UserFundsDb
+                            {
+                                user_id = int.Parse(data[0].GetString()),
+                                funds = double.Parse(data[1].GetString()),
+                                currency = data[2].GetString()
+                            };
+                            await Run(action, userFundsDb);
                         }
                         else
                         {
-                            var poss = new InPossessionDb
+                            StockDb stockDb = new StockDb
                             {
-                                owner_id = int.Parse(data[0].ToString()),
-                                stock_id = int.Parse(data[1].ToString()),
-                                amount = int.Parse(data[2].ToString())
+                                symbol = data[0].GetString(),
+                                name = data[1].GetString(),
+                                description = data[2].GetString()
                             };
-                            await Run(action, poss);
+                            await Run(action, stockDb);
                         }
                         break;
-                    case 4:
-                        // StockDb
-                        var stock = new StockDb
+                    case 7:
+                        TransactionHistoryDb transactionHistoryDb = new TransactionHistoryDb
                         {
-                            symbol = data[0].ToString(),
-                            name = data[1].ToString(),
-                            description = data[2].ToString(),
-                            price_id = int.Parse(data[3].ToString())
+                            owner_id = int.Parse(data[0].GetString()),
+                            stock_id = int.Parse(data[1].GetString()),
+                            amount = int.Parse(data[2].GetString()),
+                            price = double.Parse(data[3].GetString()),
+                            currency = data[4].GetString(),
+                            date = DateTime.Parse(data[5].GetString()),
+                            type = data[6].GetString()
                         };
-                        await Run(action, stock);
+                        await Run(action, transactionHistoryDb);
                         break;
-
                     default:
-                        Console.WriteLine("Mensaje no reconocido: " + message);
-                        break;
+                           Console.WriteLine("Mensaje no reconocido: " + message);
+                            break;
                 }
             }
         }
@@ -100,9 +114,11 @@ namespace ActualizeDataBaseWithRabbitMQ.Infrastructure
             o switch
             {
                 StockDb s => _add.Execute(s),
-                PriceDb p => _add.Execute(p),
+                PriceHistoryDb p => _add.Execute(p),
                 UsersDb u => _add.Execute(u),
                 InPossessionDb i => _add.Execute(i),
+                UserFundsDb f => _add.Execute(f),
+                TransactionHistoryDb t => _add.Execute(t),
                 _ => Task.CompletedTask
             };
 
@@ -110,9 +126,11 @@ namespace ActualizeDataBaseWithRabbitMQ.Infrastructure
             o switch
             {
                 StockDb s => _delete.Execute(s),
-                PriceDb p => _delete.Execute(p),
+                PriceHistoryDb p => _delete.Execute(p),
                 UsersDb u => _delete.Execute(u),
                 InPossessionDb i => _delete.Execute(i),
+                UserFundsDb f => _add.Execute(f),
+                TransactionHistoryDb t => _add.Execute(t),
                 _ => Task.CompletedTask
             };
     }

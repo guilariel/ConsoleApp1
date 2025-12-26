@@ -1,6 +1,6 @@
 ﻿namespace RabbitMQAndGenericRepository.Repositorio
 {
-    public interface IGenericRepository<T, IKey> where T : IEntity<IKey>//buscar durable functions 
+    public interface IGenericRepository<T, IKey> where T : IEntitys<IKey>//buscar durable functions 
     {
         Task<IEnumerable<T>> GetAllAsync();
         Task AddAsync(T entity);
@@ -9,7 +9,7 @@
         Task<T> GetByKeyAsync(IKey key);
         Task<bool> ContainsEntityAsync(IKey key);
     }
-    public class GenericRepository<T, IKey> : IGenericRepository<T, IKey> where T : IEntity<IKey>
+    public class GenericRepository<T, IKey> : IGenericRepository<T, IKey> where T : IEntitys<IKey>
     {
         protected List<T> _entities { get; set; } = new List<T>();
         public Task<IEnumerable<T>> GetAllAsync()

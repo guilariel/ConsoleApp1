@@ -8,15 +8,15 @@ using System.Threading.Tasks;
 
 namespace RabbitMQAndGenericRepository.Repositorio
 {   
-    public interface IRepository<T> where T : IEFEntity
+    public interface IRepository<T, Type> where T : IEFEntity<Type>
     {
         Task<IEnumerable<T>> GetAllAsync();
-        Task<T?> GetByIdAsync(int id);
+        Task<T?> GetByIdAsync(Type id);
         Task AddAsync(T entity);
         Task UpdateAsync(T entity);
         Task DeleteAsync(T entity);
     }
-    public class EFRepository<T> : IRepository<T> where T : class, IEFEntity  
+    public class EFRepository<T, Type> : IRepository<T, Type> where T : class, IEFEntity<Type>
     {
         protected readonly DbContext _context;
         protected readonly DbSet<T> _entities;
@@ -27,8 +27,8 @@ namespace RabbitMQAndGenericRepository.Repositorio
         }
         public async Task<IEnumerable<T>> GetAllAsync() =>
             await _entities.ToListAsync();
-        public async Task<T?> GetByIdAsync(int id) =>
-            await _entities.FirstOrDefaultAsync(e => e.id == id);
+        public async Task<T?> GetByIdAsync(Type id) =>
+            await _entities.FirstOrDefaultAsync(e => EqualityComparer<Type>.Default.Equals(e.key, id));
         public async Task AddAsync(T entity)
         {
             await _entities.AddAsync(entity);

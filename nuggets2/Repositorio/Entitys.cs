@@ -2,7 +2,7 @@
 
 namespace RabbitMQAndGenericRepository.Repositorio
 {
-    public interface IEntity<T>
+    public interface IEntitys<T>
     {
         T Key { get; }
     }
