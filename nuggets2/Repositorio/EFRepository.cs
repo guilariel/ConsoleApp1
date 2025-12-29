@@ -8,15 +8,15 @@ using System.Threading.Tasks;
 
 namespace RabbitMQAndGenericRepository.Repositorio
 {   
-    public interface IRepository<T, Type> where T : IEFEntity<Type>
+    public interface IRepository<T, Type> where T : class
     {
         Task<IEnumerable<T>> GetAllAsync();
-        Task<T?> GetByIdAsync(Type id);
+        Task<T?> GetByIdAsync(object[] keyValues);
         Task AddAsync(T entity);
         Task UpdateAsync(T entity);
         Task DeleteAsync(T entity);
     }
-    public class EFRepository<T, Type> : IRepository<T, Type> where T : class, IEFEntity<Type>
+    public class EFRepository<T, Type> : IRepository<T, Type> where T : class
     {
         protected readonly DbContext _context;
         protected readonly DbSet<T> _entities;
@@ -27,9 +27,11 @@ namespace RabbitMQAndGenericRepository.Repositorio
         }
         public async Task<IEnumerable<T>> GetAllAsync() =>
             await _entities.ToListAsync();
-        public async Task<T?> GetByIdAsync(Type id) =>
-            await _entities.FirstOrDefaultAsync(e => EqualityComparer<Type>.Default.Equals(e.key, id));
-        public async Task AddAsync(T entity)
+        public async Task<T?> GetByIdAsync(params object[] keyValues)
+        {
+            return await _entities.FindAsync(keyValues);
+        }
+        public virtual async Task AddAsync(T entity)
         {
             await _entities.AddAsync(entity);
             await _context.SaveChangesAsync();
@@ -39,7 +41,7 @@ namespace RabbitMQAndGenericRepository.Repositorio
             _entities.Update(entity);
             await _context.SaveChangesAsync();
         }
-        public async Task DeleteAsync(T entity)
+        public virtual async Task DeleteAsync(T entity)
         {
             _entities.Remove(entity);
             await _context.SaveChangesAsync();

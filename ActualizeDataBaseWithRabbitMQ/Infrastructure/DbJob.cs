@@ -1,5 +1,6 @@
-﻿using RabbitMQAndGenericRepository.Repositorio.DbEntities;
-using RabbitMQAndGenericRepository.RabbitMq;
+﻿using RabbitMQAndGenericRepository.RabbitMq;
+using RabbitMQAndGenericRepository.Repositorio.DbEntities;
+using System.Globalization;
 using System.Text.Json;
 namespace ActualizeDataBaseWithRabbitMQ.Infrastructure
 {
@@ -42,7 +43,7 @@ namespace ActualizeDataBaseWithRabbitMQ.Infrastructure
                         await Run(action, usersDb);
                         break;
                     case 3:
-                        if (int.TryParse(data[0].GetString(), out _) || int.TryParse(data[1].GetString(), out _))
+                        if (int.TryParse(data[0].GetString(), out _) && int.TryParse(data[1].GetString(), out _) && int.TryParse(data[2].GetString(), out _))
                         {
                             InPossessionDb inPossessionDb = new InPossessionDb
                             {
@@ -51,16 +52,6 @@ namespace ActualizeDataBaseWithRabbitMQ.Infrastructure
                                 amount = int.Parse(data[2].GetString())
                             };
                             await Run(action, inPossessionDb);
-                        }
-                        else if (DateTime.TryParse(data[2].GetString(), out _))
-                        {
-                            PriceHistoryDb priceHistoryDb = new PriceHistoryDb
-                            {
-                                price = double.Parse(data[0].GetString()),
-                                currency = data[1].GetString(),
-                                date = DateTime.Parse(data[2].GetString()),
-                            };
-                            await Run(action, priceHistoryDb);
                         }
                         else if( double.TryParse(data[0].GetString(), out _))
                         {
@@ -83,6 +74,20 @@ namespace ActualizeDataBaseWithRabbitMQ.Infrastructure
                             await Run(action, stockDb);
                         }
                         break;
+                    case 4:
+                        PriceHistoryDb priceHistoryDb = new PriceHistoryDb
+                        {
+                            stock_id = int.Parse(data[0].GetString()),
+                            price = double.Parse(data[1].GetString()),
+                            currency = data[2].GetString(),
+                            date = DateTime.Parse(
+                                 data[3].GetString(),
+                                 CultureInfo.InvariantCulture,
+                                 DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal
+                            )
+                        };
+                        await Run(action, priceHistoryDb);
+                        break;
                     case 7:
                         TransactionHistoryDb transactionHistoryDb = new TransactionHistoryDb
                         {
@@ -91,7 +96,13 @@ namespace ActualizeDataBaseWithRabbitMQ.Infrastructure
                             amount = int.Parse(data[2].GetString()),
                             price = double.Parse(data[3].GetString()),
                             currency = data[4].GetString(),
-                            date = DateTime.Parse(data[5].GetString()),
+                            date = DateTime.ParseExact(
+    data[5].GetString(),
+    "dd/MM/yyyy HH:mm:ss",
+    CultureInfo.InvariantCulture,
+    DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal
+),
+
                             type = data[6].GetString()
                         };
                         await Run(action, transactionHistoryDb);

@@ -3,13 +3,11 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace RabbitMQAndGenericRepository.Repositorio.DbEntities
 {
-    public class StockDb : IEFEntity<int>
+    public class StockDb 
     {
-        [NotMapped]
-        public int key => id;
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int id { get; private set; }
+        public int id { get; set; }
         public string symbol { get; set; }
         public string name { get; set; }
         public string description { get; set; }

@@ -23,68 +23,88 @@ namespace ActualizeDataBaseWithRabbitMQ.Infrastructure
 
         public async Task Execute(StockDb stock)
         {
-            await _stocksApp.StockRepository.AddAsync(stock);
-            await _purchase.StockRepository.AddAsync(stock);
-            await _sell.StockRepository.AddAsync(stock);
+            await _stocksApp.StockRepository.AddAsync(Clone(stock));
+            await _purchase.StockRepository.AddAsync(Clone(stock));
+            await _sell.StockRepository.AddAsync(Clone(stock));
         }
+
         public async Task Execute(PriceHistoryDb price)
         {
-            await _stocksApp.PriceRepository.AddAsync(price);
-            await _purchase.PriceRepository.AddAsync(price);
-            await _sell.PriceRepository.AddAsync(price);
+            await _stocksApp.PriceRepository.AddAsync(Clone(price));
+            await _purchase.PriceRepository.AddAsync(Clone(price));
+            await _sell.PriceRepository.AddAsync(Clone(price));
         }
+
         public async Task Execute(UsersDb user)
         {
-            await _stocksApp.UserRepository.AddAsync(user);
-            await _purchase.UserRepository.AddAsync(user);
-            await _sell.UserRepository.AddAsync(user);
-            await _login.UserRepository.AddAsync(user);
+            await _stocksApp.UserRepository.AddAsync(Clone(user));
+            await _purchase.UserRepository.AddAsync(Clone(user));
+            await _sell.UserRepository.AddAsync(Clone(user));
+            await _login.UserRepository.AddAsync(Clone(user));
         }
-        public async Task Execute(UserFundsDb userFunds)
+
+        public async Task Execute(UserFundsDb funds)
         {
-            await _stocksApp.UserFundsRepository.AddAsync(userFunds);
-            await _login.UserFundsRepository.AddAsync(userFunds);
+            await _stocksApp.UserFundsRepository.AddAsync(Clone(funds));
+            await _login.UserFundsRepository.AddAsync(Clone(funds));
         }
+
         public async Task Execute(InPossessionDb possession)
         {
-            await _stocksApp.InPossessionRepository.AddAsync(possession);
+            await _stocksApp.InPossessionRepository.AddAsync(Clone(possession));
         }
+
         public async Task Execute(TransactionHistoryDb transaction)
         {
-            await _stocksApp.TransactionRepository.AddAsync(transaction);
+            await _stocksApp.TransactionRepository.AddAsync(Clone(transaction));
         }
+
+        // ---------- CLONES ----------
+
+        private static StockDb Clone(StockDb s) => new()
+        {
+            symbol = s.symbol,
+            name = s.name,
+            description = s.description
+        };
+
+        private static PriceHistoryDb Clone(PriceHistoryDb p) => new()
+        {
+            stock_id  = p.stock_id,
+            price = p.price,
+            currency = p.currency,
+            date = p.date
+        };
+
+        private static UsersDb Clone(UsersDb u) => new()
+        {
+            name = u.name,
+            password_hash = u.password_hash
+        };
+
+        private static UserFundsDb Clone(UserFundsDb f) => new()
+        {
+            user_id = f.user_id,
+            funds = f.funds,
+            currency = f.currency
+        };
+
+        private static InPossessionDb Clone(InPossessionDb i) => new()
+        {
+            owner_id = i.owner_id,
+            stock_id = i.stock_id,
+            amount = i.amount
+        };
+
+        private static TransactionHistoryDb Clone(TransactionHistoryDb t) => new()
+        {
+            owner_id = t.owner_id,
+            stock_id = t.stock_id,
+            amount = t.amount,
+            price = t.price,
+            currency = t.currency,
+            date = t.date,
+            type = t.type
+        };
     }
 }
-
-/* public async Task Execute(StockDb stock)
-        {
-            await _stockRepository_StocksApp.AddAsync(stock);
-            await _stockRepository_Purchase.AddAsync(stock);
-            await _stockRepository_Sell.AddAsync(stock);
-        }
-        public async Task Execute(PriceDb price)
-        {
-            await _priceRepository_StocksApp.AddPrice(price);
-            await _priceRepository_Purchase.AddPrice(price);
-            await _priceRepository_Sell.AddPrice(price);
-        }
-        public async Task Execute(UsersDb user)
-        {
-            await _userRepository_StocksApp.AddAsync(user);
-            await _userRepository_Purchase.AddAsync(user);
-            await _userRepository_Sell.AddAsync(user);
-            await _userRepository_LogIn.AddAsync(user);
-        }
-        public async Task Execute(UserFundsDb userFunds)
-        {
-            await userFundsRepository_StocksApp.AddAsync(userFunds);
-            await _userFundsRepository_LogIn.AddAsync(userFunds);
-        }
-        public async Task Execute(InPossessionDb possession)
-        {
-            await _inPossessionRepository_StocksApp.AddPossession(possession);
-        }
-        public async Task Execute(TransactionHistoryDb transaction)
-        {
-            await _transactionRepositoryRepository_StocksApp.AddAsync(transaction);
-        }*/

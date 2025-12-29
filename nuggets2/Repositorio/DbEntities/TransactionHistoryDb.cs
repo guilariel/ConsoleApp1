@@ -8,13 +8,11 @@ using System.Threading.Tasks;
 
 namespace RabbitMQAndGenericRepository.Repositorio.DbEntities
 {
-    public class TransactionHistoryDb : IEFEntity<int>
+    public class TransactionHistoryDb 
     {
-        [NotMapped]
-        public int key => id;
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int id { get; private set; }
+        public int id { get; set; }
         public int owner_id { get; set; }
         public int stock_id { get; set; }
         public int amount { get; set; }

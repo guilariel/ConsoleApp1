@@ -8,12 +8,11 @@ using System.Threading.Tasks;
 
 namespace RabbitMQAndGenericRepository.Repositorio.DbEntities
 {
-    public class UserFundsDb: IEFEntity<UserFundsStruct>
+    public class UserFundsDb
     {
-        [NotMapped]
-        public UserFundsStruct key => new UserFundsStruct(user_id, currency);
         public int user_id { get; set; }
         public double funds { get; set; }
         public string currency { get; set; }
     }
+    public readonly record struct UserFundsStruct(int user_id, string currency);
 }
