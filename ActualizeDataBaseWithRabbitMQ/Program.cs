@@ -18,10 +18,19 @@ builder.WebHost.ConfigureKestrel(options =>
 var services = builder.Services;
 var configuration = builder.Configuration;
 
-builder.Services.AddDbContextFactory<GenericDbContext>(options =>
-{
-    options.UseNpgsql(); // provider base
-});
+
+builder.Services.AddDbContext<StocksAppDbContext>(options =>
+    options.UseNpgsql(configuration.GetConnectionString("StockAppDb"))
+);
+builder.Services.AddDbContext<SellStocksDbContext>(options =>
+    options.UseNpgsql(configuration.GetConnectionString("SellStocksDb"))
+);
+builder.Services.AddDbContext<PurchaseStocksDbContext>(options =>
+    options.UseNpgsql(configuration.GetConnectionString("PurchaseStocksDb"))
+);
+builder.Services.AddDbContext<LogInDbContext>(options =>
+    options.UseNpgsql(configuration.GetConnectionString("LogInDb"))
+);
 
 // --------------------------------------------
 // 🔹 RabbitMQ
@@ -35,13 +44,44 @@ services.AddSingleton<RabbitMessageService>();
 //  Repositorios y Jobs
 // --------------------------------------------
 
+services.AddTransient<StockRepository>();
+services.AddTransient<PriceRepository>();
+services.AddTransient<TransactionRepository>();
+services.AddTransient<UserFundsRepository>();
+services.AddTransient<UserRepository>();
+services.AddTransient<InPossessionRepository>();
+services.AddTransient<MessageRepository>();
+
 services.AddTransient<StocksAppUnitOfWork>();
 services.AddTransient<SellStocksUnitOfWork>();
 services.AddTransient<PurchaseStocksUnitOfWork>(); 
-services.AddTransient<LogInUnitOfWork>();
+services.AddTransient<IdentityService>();
 
-services.AddScoped<AddToDbJob>();
-services.AddScoped<DeleteFromDbJob>();
+services.AddTransient<AddStockCommand>();
+services.AddTransient<AddPriceCommand>();
+services.AddTransient<AddTransactionCommand>();
+services.AddTransient<AddUserFundsCommand>();
+services.AddTransient<AddUserCommand>();
+services.AddTransient<AddInPossessionCommand>();
+
+services.AddTransient<DeleteStockCommand>();
+services.AddTransient<DeletePriceCommand>();
+services.AddTransient<DeleteTransactionCommand>();
+services.AddTransient<DeleteUserFundsCommand>();
+services.AddTransient<DeleteUserCommand>();
+services.AddTransient<DeleteInPossessionCommand>();
+
+services.AddTransient<CreateStock>();   
+services.AddTransient<CreatePrice>();
+services.AddTransient<CreateTransactionHistory>();
+services.AddTransient<CreateUserFunds>();
+services.AddTransient<CreateUser>();
+services.AddTransient<CreateInPossession>();
+
+services.AddSingleton<ICommandResolver, CommandResolver>();
+services.AddSingleton<IObjectCreatorResolver, ObjectCreatorResolver>();
+services.AddScoped<Idepomtecy>();
+
 services.AddScoped<DbJob>();
 
 // --------------------------------------------

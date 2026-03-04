@@ -3,11 +3,11 @@ using RabbitMQAndGenericRepository.Repositorio;
 using RabbitMQAndGenericRepository.Repositorio.DbEntities;
 namespace ActualizeDataBaseWithRabbitMQ.Repositories
 {
-    public interface IStockRepository : IRepository<StockDb, int>
+    public interface IStockRepository : IRepository<StockDb>
     {
         Task<StockDb> GetOneByNameAsync(string name);
     }
-    public class StockRepository : EFRepository<StockDb, int> , IStockRepository
+    public class StockRepository : EFRepository<StockDb> , IStockRepository
     {
         public StockRepository(DbContext context) : base(context)
         {

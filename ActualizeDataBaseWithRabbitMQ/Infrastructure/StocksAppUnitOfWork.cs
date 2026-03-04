@@ -14,16 +14,14 @@ namespace ActualizeDataBaseWithRabbitMQ.Infrastructure
         public UserRepository UserRepository { get; }
         public UserFundsRepository UserFundsRepository { get; }
 
-        public StocksAppUnitOfWork(IConfiguration config)
-            : base(config.GetConnectionString("StocksApp"))
+        public StocksAppUnitOfWork(StocksAppDbContext dbContext) : base(dbContext)
         {
-
-            InPossessionRepository = new InPossessionRepository(_context);
-            PriceRepository = new PriceRepository(_context);
-            StockRepository = new StockRepository(_context);
-            TransactionRepository = new TransactionRepository(_context);
-            UserRepository = new UserRepository(_context);
-            UserFundsRepository = new UserFundsRepository(_context);
+            PriceRepository = new PriceRepository(dbContext);
+            StockRepository = new StockRepository(dbContext);
+            UserRepository = new UserRepository(dbContext);
+            TransactionRepository = new TransactionRepository(dbContext);
+            UserFundsRepository = new UserFundsRepository(dbContext);
+            InPossessionRepository = new InPossessionRepository(dbContext);
         }
     }
 

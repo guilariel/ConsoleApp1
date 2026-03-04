@@ -1,55 +1,55 @@
-﻿namespace RabbitMQAndGenericRepository.Repositorio
+﻿using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
+
+namespace RabbitMQAndGenericRepository.Repositorio
 {
-    public interface IGenericRepository<T, IKey> where T : IEntitys<IKey>//buscar durable functions 
+    public interface IGenericRepository<T> where T : class//buscar durable functions 
     {
         Task<IEnumerable<T>> GetAllAsync();
+        Task<T?> GetAsync(Expression<Func<T, bool>> predicate);
         Task AddAsync(T entity);
         Task UpdateAsync(T entity);
-        Task DeleteAsync(IKey key);
-        Task<T> GetByKeyAsync(IKey key);
-        Task<bool> ContainsEntityAsync(IKey key);
+        Task DeleteAsync(T entity);
+        Task<bool> ExistsAsync(Expression<Func<T, bool>> predicate);
     }
-    public class GenericRepository<T, IKey> : IGenericRepository<T, IKey> where T : IEntitys<IKey>
+    public class GenericRepository<T> : IGenericRepository<T> where T : class
     {
-        protected List<T> _entities { get; set; } = new List<T>();
-        public Task<IEnumerable<T>> GetAllAsync()
+        private readonly DbContext _dbContext;
+        private readonly DbSet<T> _dbSet;
+        public GenericRepository(DbContext dbContext, DbSet<T> dbSet)
         {
-            return Task.FromResult(_entities.AsEnumerable());
+            _dbContext = dbContext;
+            _dbSet = dbSet;
         }
-        public Task AddAsync(T entity)
+        public async Task<IEnumerable<T>> GetAllAsync()
         {
-            if (_entities.Contains(entity))
-                throw new ArgumentException("The entity already exists in the repository.");
-            _entities.Add(entity);
-            return Task.CompletedTask;
+            return await _dbSet.ToListAsync();
         }
-        public Task UpdateAsync(T entity)
+        public async Task<T?> GetAsync(Expression<Func<T, bool>> predicate)
         {
-            var index = _entities.FindIndex(e => e.Equals(entity));
-            if (index == -1)
-                throw new ArgumentException("The entity does not exist in the repository.");
-            _entities[index] = entity;
-            return Task.CompletedTask;
+            return await _dbSet.FirstOrDefaultAsync(predicate);
         }
-        public Task DeleteAsync(IKey key)
+        public async Task AddAsync(T entity)
         {
-            var entity = _entities.FirstOrDefault(e => EqualityComparer<IKey>.Default.Equals(e.Key, key));
-            if (entity == null)
-                throw new ArgumentException("The entity does not exist in the repository.");
-            _entities.Remove(entity);
-            return Task.CompletedTask;
+            await _dbSet.AddAsync(entity);
+            await _dbContext.SaveChangesAsync();
         }
-        public Task<T> GetByKeyAsync(IKey key)
+        public async Task UpdateAsync(T entity)
         {
-            var entity = _entities.FirstOrDefault(e => EqualityComparer<IKey>.Default.Equals(e.Key, key));
-            if (entity == null)
-                throw new ArgumentException("The entity does not exist in the repository.");
-            return Task.FromResult(entity);
+            _dbSet.Update(entity);
+            await _dbContext.SaveChangesAsync();
         }
-        public Task<bool> ContainsEntityAsync(IKey key)
+        public async Task DeleteAsync(T entity)
         {
-            bool exists = _entities.Any(e => EqualityComparer<IKey>.Default.Equals(e.Key, key));
-            return Task.FromResult(exists);
+             _dbSet.Remove(entity);
+            await _dbContext.SaveChangesAsync();
+        }
+        public async Task<bool> ExistsAsync(Expression<Func<T, bool>> predicate)
+        {
+            return await _dbSet.AnyAsync(predicate);
         }
     }
 }
+
+
+//!"#$%&/()=?¡¨*][_:;@^`~\¬/*ZZz^^`~\zx@@@

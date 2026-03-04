@@ -9,19 +9,19 @@ using System.Threading.Tasks;
 
 namespace ActualizeDataBaseWithRabbitMQ.Repositories
 {
-    interface IPriceRepository : IRepository<PriceHistoryDb, int>
+    interface IPriceRepository : IRepository<PriceHistoryDb>
     {
-        Task<PriceHistoryDb> GetLatestAsync(int id);
+        Task<PriceHistoryDb> GetLatestAsync(string id);
     }
-    public class PriceRepository : EFRepository<PriceHistoryDb, int>, IPriceRepository
+    public class PriceRepository : EFRepository<PriceHistoryDb>, IPriceRepository
     {
         public PriceRepository(DbContext context) : base(context)
         {
         }
-        public async Task<PriceHistoryDb> GetLatestAsync(int id)
+        public async Task<PriceHistoryDb> GetLatestAsync(string id)
         {
             return await _entities
-                .Where(e => e.key == id)
+                .Where(e => e.stock_id == id)
                 .OrderByDescending(e => e.date)
                 .FirstOrDefaultAsync();
         }

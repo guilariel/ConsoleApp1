@@ -46,6 +46,7 @@ namespace RabbitMQAndGenericRepository.RabbitMq
             {
                 var body = result.Body.ToArray();
                 var text = Encoding.UTF8.GetString(body);
+                var key = result.BasicProperties.MessageId ?? "no-id";
                 messages.Add(text);
                 result = await channel.BasicGetAsync("zeka", autoAck: true);
             }

@@ -3,15 +3,11 @@ using RabbitMQAndGenericRepository.Repositorio;
 
 public abstract class UnitOfWorkBase : IDisposable
 {
-    protected readonly GenericDbContext _context;
+    protected readonly DbContext _context;
 
-    protected UnitOfWorkBase(string connectionString)
+    protected UnitOfWorkBase(DbContext dbContext)
     {
-       var options = new DbContextOptionsBuilder<GenericDbContext>()
-            .UseNpgsql(connectionString)
-            .Options;
-
-       _context = new GenericDbContext(options);
+        _context = dbContext;
     }
 
     public int SaveChanges() => _context.SaveChanges();

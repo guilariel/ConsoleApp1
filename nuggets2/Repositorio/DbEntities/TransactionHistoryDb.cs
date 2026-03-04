@@ -12,10 +12,10 @@ namespace RabbitMQAndGenericRepository.Repositorio.DbEntities
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int id { get; set; }
-        public int owner_id { get; set; }
-        public int stock_id { get; set; }
-        public int amount { get; set; }
+        public string id { get; set; }
+        public string owner_id { get; set; }
+        public string stock_id { get; set; }
+        public double amount { get; set; }
         public double price { get; set; }
         public string currency { get; set; }
         public DateTime date { get; set; }

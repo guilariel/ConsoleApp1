@@ -7,6 +7,7 @@
     <UserSecretsId>7946cf25-993e-4344-9c11-a3bb8e39e64c</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.11" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.11" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Abstractions" Version="9.0.11" />
     <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="9.0.11" />

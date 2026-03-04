@@ -1,4 +1,5 @@
 ﻿using ActualizeDataBaseWithRabbitMQ.Repositories;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using RabbitMQAndGenericRepository.Repositorio;
@@ -10,15 +11,14 @@ using System.Threading.Tasks;
 
 namespace ActualizeDataBaseWithRabbitMQ.Infrastructure
 {
-    public class LogInUnitOfWork: UnitOfWorkBase
+    public class IdentityService
     {
-        public UserRepository UserRepository { get; }
+        public UserManager<IdentityUser> UserManager { get; }
         public UserFundsRepository UserFundsRepository { get; }
-        public LogInUnitOfWork(IConfiguration config)
-            : base(config.GetConnectionString("LogInDb"))
+        public IdentityService(LogInDbContext logInDbContext, UserManager<IdentityUser> userManager, UserFundsRepository userFundsRepository)
         {
-            UserRepository = new UserRepository(_context);
-            UserFundsRepository = new UserFundsRepository(_context);
+            UserManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
+            UserFundsRepository = new UserFundsRepository(logInDbContext);
         }
     }
 }

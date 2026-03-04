@@ -10,12 +10,11 @@ namespace ActualizeDataBaseWithRabbitMQ.Infrastructure
         public readonly PriceRepository PriceRepository;
         public readonly StockRepository StockRepository;
         public readonly UserRepository UserRepository;
-        public PurchaseStocksUnitOfWork(IConfiguration config)
-            : base(config.GetConnectionString("DefaultConnection"))
+        public PurchaseStocksUnitOfWork(PurchaseStocksDbContext dbContext) : base(dbContext)
         {
-            PriceRepository = new PriceRepository(_context);
-            StockRepository = new StockRepository(_context);
-            UserRepository = new UserRepository(_context);
+            PriceRepository = new PriceRepository(dbContext);
+            StockRepository = new StockRepository(dbContext);
+            UserRepository = new UserRepository(dbContext);
         }
     }
 }

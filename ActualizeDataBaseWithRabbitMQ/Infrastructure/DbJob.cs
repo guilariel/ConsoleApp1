@@ -1,4 +1,5 @@
-﻿using RabbitMQAndGenericRepository.RabbitMq;
+﻿using Microsoft.AspNetCore.Identity;
+using RabbitMQAndGenericRepository.RabbitMq;
 using RabbitMQAndGenericRepository.Repositorio.DbEntities;
 using System.Globalization;
 using System.Text.Json;
@@ -6,18 +7,125 @@ namespace ActualizeDataBaseWithRabbitMQ.Infrastructure
 {
     internal class DbJob
     {
-        private readonly AddToDbJob _add;
-        private readonly DeleteFromDbJob _delete;
+        private readonly ICommandResolver _command;
+        private readonly IObjectCreatorResolver _objectCreator;
+        private readonly Idepomtecy _idepomtecy;
         private readonly RabbitMessageService _rabbit;
-
-        public DbJob(RabbitMessageService rabbit, AddToDbJob add, DeleteFromDbJob delete)
+        public DbJob(RabbitMessageService rabbit, ICommandResolver command, Idepomtecy idepomtecy,IObjectCreatorResolver objectCreator)
         {
             _rabbit = rabbit;
-            _add = add;
-            _delete = delete;
+            _command = command;
+            _idepomtecy = idepomtecy;
+            _objectCreator = objectCreator;
         }
 
         public async Task Execute()
+        {
+            var rawMessages = await _rabbit.GetRawMessagesAsync();
+        
+            foreach (string message in rawMessages)
+            {
+                var root = JsonDocument.Parse(message).RootElement;
+                if (root.ValueKind != JsonValueKind.Array) continue;
+
+                string action = root[0].GetString();
+                string type = root[1].GetString();
+                string messageId = root[2].GetString();
+                int length = root.GetArrayLength(); // sin la acción
+
+                var data = root.EnumerateArray().Skip(3).ToArray();
+                string[] dataStrings = data.Select(d => d.GetString()).ToArray();
+                object obj = _objectCreator.Create(type, dataStrings);
+
+                var resolveMethod = _command.GetType().GetMethod("Resolve");
+                var genericResolve = resolveMethod!.MakeGenericMethod(obj.GetType());
+                var commandInstance = genericResolve.Invoke(_command, new object[] { action });
+                var executeMethod = commandInstance!.GetType().GetMethod("Execute");
+
+                await _idepomtecy.ExecuteAsync<object>(messageId, async () =>
+                {
+                    await (Task)executeMethod.Invoke(commandInstance, new object[] { obj })!;
+                    return null;
+                });
+            }
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+//private Task Run(string action, object obj)
+//{
+//    return action == "add"
+//        ? _callAdd(obj)
+//        : _callDelete(obj);
+//}
+
+//private Task _callAdd(object o) =>
+//    o switch
+//    {
+//        StockDb s => _add.Execute(s),
+//        PriceHistoryDb p => _add.Execute(p),
+//        UsersDb u => _add.Execute(u),
+//        InPossessionDb i => _add.Execute(i),
+//        UserFundsDb f => _add.Execute(f),
+//        TransactionHistoryDb t => _add.Execute(t),
+//        IdentityUser identityUser => _add.Execute(identityUser),
+//        _ => Task.CompletedTask
+//    };
+
+//private Task _callDelete(object o) =>
+//    o switch
+//    {
+//        StockDb s => _delete.Execute(s),
+//        PriceHistoryDb p => _delete.Execute(p),
+//        UsersDb u => _delete.Execute(u),
+//        InPossessionDb i => _delete.Execute(i),
+//        UserFundsDb f => _delete.Execute(f),
+//        TransactionHistoryDb t => _delete.Execute(t),
+//        IdentityUser identityUser => _delete.Execute(identityUser),
+//        _ => Task.CompletedTask
+//    };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*     public async Task Execute()
         {
             var rawMessages = await _rabbit.GetRawMessagesAsync();
 
@@ -107,42 +215,27 @@ namespace ActualizeDataBaseWithRabbitMQ.Infrastructure
                         };
                         await Run(action, transactionHistoryDb);
                         break;
+                    //em caso de que el mensaje sea identityUser
+                    case 11:
+                        IdentityUser identityUser = new IdentityUser
+                        {
+                            Id = data[0].GetString(),
+                            UserName = data[1].GetString(),
+                            NormalizedUserName = data[2].GetString(),
+                            Email = data[3].GetString(),
+                            NormalizedEmail = data[4].GetString(),
+                            EmailConfirmed = bool.Parse(data[5].GetString()),
+                            PasswordHash = data[6].GetString(),
+                            SecurityStamp = data[7].GetString(),
+                            ConcurrencyStamp = data[8].GetString(),
+                            PhoneNumber = data[9].GetString(),
+                            PhoneNumberConfirmed = bool.Parse(data[10].GetString())
+                        };
+                      await Run(action, identityUser);
+                      break;
                     default:
                            Console.WriteLine("Mensaje no reconocido: " + message);
                             break;
                 }
             }
-        }
-
-        private Task Run(string action, object obj)
-        {
-            return action == "add"
-                ? _callAdd(obj)
-                : _callDelete(obj);
-        }
-
-        private Task _callAdd(object o) =>
-            o switch
-            {
-                StockDb s => _add.Execute(s),
-                PriceHistoryDb p => _add.Execute(p),
-                UsersDb u => _add.Execute(u),
-                InPossessionDb i => _add.Execute(i),
-                UserFundsDb f => _add.Execute(f),
-                TransactionHistoryDb t => _add.Execute(t),
-                _ => Task.CompletedTask
-            };
-
-        private Task _callDelete(object o) =>
-            o switch
-            {
-                StockDb s => _delete.Execute(s),
-                PriceHistoryDb p => _delete.Execute(p),
-                UsersDb u => _delete.Execute(u),
-                InPossessionDb i => _delete.Execute(i),
-                UserFundsDb f => _add.Execute(f),
-                TransactionHistoryDb t => _add.Execute(t),
-                _ => Task.CompletedTask
-            };
-    }
-}
+        }*/

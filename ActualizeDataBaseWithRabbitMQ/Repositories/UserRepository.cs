@@ -9,11 +9,11 @@ using System.Threading.Tasks;
 
 namespace ActualizeDataBaseWithRabbitMQ.Repositories
 {
-    public interface IUserRepository : IRepository<UsersDb, int>
+    public interface IUserRepository : IRepository<UsersDb>
     {
         public Task<UsersDb> GetOneByNameAsync(string name);
     }
-    public class UserRepository : EFRepository<UsersDb, int>, IUserRepository
+    public class UserRepository : EFRepository<UsersDb>, IUserRepository
     {
         public UserRepository(DbContext context) : base(context)
         {

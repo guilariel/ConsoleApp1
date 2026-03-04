@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace RabbitMQAndGenericRepository.Repositorio
 {   
-    public interface IRepository<T, Type> where T : class
+    public interface IRepository<T> where T : class
     {
         Task<IEnumerable<T>> GetAllAsync();
         Task<T?> GetByIdAsync(object[] keyValues);
@@ -16,7 +16,7 @@ namespace RabbitMQAndGenericRepository.Repositorio
         Task UpdateAsync(T entity);
         Task DeleteAsync(T entity);
     }
-    public class EFRepository<T, Type> : IRepository<T, Type> where T : class
+    public class EFRepository<T> : IRepository<T> where T : class
     {
         protected readonly DbContext _context;
         protected readonly DbSet<T> _entities;

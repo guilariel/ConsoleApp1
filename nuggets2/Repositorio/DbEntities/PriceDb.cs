@@ -5,8 +5,7 @@ namespace RabbitMQAndGenericRepository.Repositorio.DbEntities
 {
     public class PriceHistoryDb 
     {
-        public int key => stock_id;
-        public int stock_id { get; set; }
+        public string stock_id { get; set; }
         public double price { get; set; }
         public string currency { get; set; }
         public DateTime date { get; set; }

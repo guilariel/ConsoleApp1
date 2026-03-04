@@ -1,17 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace RabbitMQAndGenericRepository.Repositorio.DbEntities
 {
-    public class UserFundsDb
+    public class ProcessedMessages
     {
-        public string user_id { get; set; }
-        public double funds { get; set; }
-        public string currency { get; set; }
+
+        [Key]
+        public string message_Id { get; set; }
+        public DateTime procesedAt { get; set; }
     }
 }
